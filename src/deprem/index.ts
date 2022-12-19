@@ -1,4 +1,5 @@
 import axios from "axios";
+
 async function fetchData(): Promise<any> {
   const resp = await axios.get(
     "http://www.koeri.boun.edu.tr/scripts/lst2.asp",
@@ -17,7 +18,7 @@ async function getEarthquake(): Promise<any> {
   const data = await fetchData();
   const regex: RegExp =
     /(\d{4}\.\d{2}\.\d{2})\s(\d{2}:\d{2}:\d{2})\s\s(\d+\.\d*)\s*(\d*\.\d*)\s*(\d*\.\d*)\s*([-\.-|]+|[\d*\.\d*])\s*(\d*\.\d*)\s*([-\.-|]+|[\d*\.\d*])\s*(\w+-\w+\s\(\w+\)|\w*(\s\(\w*\))?)/g;
-  const text = data.split("<pre>")[1].split("</pre>")[0];
+  const text: string = data.split("<pre>")[1].split("</pre>")[0];
   const results = data
     .split("<pre>")[1]
     .split("</pre>")[0]
@@ -37,4 +38,12 @@ async function getEarthquake(): Promise<any> {
   return results;
 }
 
-export {getEarthquake};
+async function filterByCity(city: string): Promise<any> {
+  const data = await getEarthquake();
+  const filteredData = data.filter((item: any) => {
+    return item.location.includes(city);
+  });
+  return filteredData;
+}
+
+export {getEarthquake, filterByCity};

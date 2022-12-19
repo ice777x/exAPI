@@ -3,7 +3,7 @@ import {getWord} from "./tdk";
 import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
 import {getSearchResult} from "./google";
 import {getYandexPhoto} from "./yandex";
-import {getEarthquake} from "./deprem";
+import {filterByCity, getEarthquake} from "./deprem";
 import cors from "cors";
 const app: Application = express();
 app.use(express.urlencoded({extended: true}));
@@ -155,6 +155,23 @@ app.get("/google/search", async (req: Request, res: Response) => {
 });
 
 app.get("/deprem", async (req: Request, res: Response) => {
+  let query: any = req.query.city;
+  const upperCaseQuery = query.toLocaleUpperCase("en-US");
+  let city = upperCaseQuery
+    .replace(/Ü/g, "U")
+    .replace(/Ç/g, "C")
+    .replace(/Ş/g, "S")
+    .replace(/Ğ/g, "G");
+  if (query) {
+    const data = await filterByCity(city);
+    if (data) {
+      const resp = responseModel(200, "Earthquake data", data);
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(400, "Earthquake data not found", null);
+      return res.status(404).json(resp);
+    }
+  }
   const data = await getEarthquake();
   if (data) {
     const resp = responseModel(200, "Earthquake data", data);
@@ -167,7 +184,7 @@ app.get("/deprem", async (req: Request, res: Response) => {
 
 setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
 
-app.listen(3000, () => {
+app.listen(5000, () => {
   console.log("server is running on port 3000");
 });
 
