@@ -3,9 +3,12 @@ import {getWord} from "./tdk";
 import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
 import {getSearchResult} from "./google";
 import {getYandexPhoto} from "./yandex";
-
+import {getEarthquake} from "./deprem";
+import cors from "cors";
 const app: Application = express();
-
+app.use(express.urlencoded({extended: true}));
+app.use(cors());
+const router = express.Router();
 const routers = [
   {
     path: "/",
@@ -22,13 +25,18 @@ const routers = [
     path: "/google",
     method: "get",
     detail: "Google API",
-    examples: "/google/search?q=kedi",
+    example: "/google/search?q=kedi",
   },
   {
     path: "/yandex",
     method: "get",
     detail: "Yandex API",
-    examples: "/yandex/img?q=kedi",
+    example: "/yandex/img?q=kedi",
+  },
+  {
+    path: "/deprem",
+    method: "get",
+    detail: "Deprem API",
   },
 ];
 
@@ -36,12 +44,19 @@ app.get("/", (req: Request, res: Response) => {
   res.status(200).json({response: routers});
 });
 
+app.use((req, res, next) => {
+  console.log(
+    `LOG  Time: ${new Date().toUTCString()}  PATH: ${req.originalUrl}`
+  );
+  next();
+});
+
 app.get("/tdk", async (req: Request, res: Response) => {
   const query = req.query.q;
   if (!query) {
     return res.status(400).json({
-      status: 400,
-      message: "query is required",
+      status: 200,
+      message: "TDK API",
       example: "/tdk?q=kelime",
     });
   } else {
@@ -80,6 +95,13 @@ app.get("/tdk/oneri", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/yandex", async (req: Request, res: Response) => {
+  const resp = responseModel(200, "Yandex API", null, {
+    example: "/yandex/img?q=kedi",
+  });
+  res.send(resp);
+});
+
 app.get("/yandex/img", async (req: Request, res: Response) => {
   const query = req.query.q;
   if (!query) {
@@ -103,6 +125,12 @@ app.get("/yandex/img", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/google", async (req: Request, res: Response) => {
+  const resp = responseModel(200, "Google API", null, {
+    example: "/google/search?q=kedi",
+  });
+  res.send(resp);
+});
 app.get("/google/search", async (req: Request, res: Response) => {
   const query = req.query.q;
   if (!query) {
@@ -115,7 +143,7 @@ app.get("/google/search", async (req: Request, res: Response) => {
     if (searchResult) {
       const resp = responseModel(
         200,
-        `Google image results for ${query}`,
+        `Google search results for ${query}`,
         searchResult
       );
       return res.status(200).json(resp);
@@ -126,8 +154,21 @@ app.get("/google/search", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/deprem", async (req: Request, res: Response) => {
+  const data = await getEarthquake();
+  if (data) {
+    const resp = responseModel(200, "Earthquake data", data);
+    return res.status(200).json(resp);
+  } else {
+    const resp = responseModel(400, "Earthquake data not found", null);
+    return res.status(404).json(resp);
+  }
+});
+
 setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
 
 app.listen(3000, () => {
   console.log("server is running on port 3000");
 });
+
+export {router};

@@ -1,7 +1,8 @@
 import cheerio from "cheerio";
+import axios from "axios";
 
 async function fetchYandexPhoto(query: any, number: any = 1): Promise<any> {
-  const resp = await fetch(
+  const resp = await axios.get(
     `https://yandex.com.tr/gorsel/search?p=${number}&text=${query}&isize=large&itype=photo&lr=11508&rpt=image`,
     {
       headers: {
@@ -11,7 +12,7 @@ async function fetchYandexPhoto(query: any, number: any = 1): Promise<any> {
       },
     }
   );
-  const data = await resp.text();
+  const data = await resp.data;
   const $ = cheerio.load(data);
   const photos = $("div.serp-item")
     .map((i, el) => {
