@@ -156,13 +156,13 @@ app.get("/google/search", async (req: Request, res: Response) => {
 
 app.get("/deprem", async (req: Request, res: Response) => {
   let query: any = req.query.city;
-  const upperCaseQuery = query.toLocaleUpperCase("en-US");
-  let city = upperCaseQuery
-    .replace(/Ü/g, "U")
-    .replace(/Ç/g, "C")
-    .replace(/Ş/g, "S")
-    .replace(/Ğ/g, "G");
   if (query) {
+    query = query.toLocaleUpperCase("en-US");
+    let city = query
+      .replace(/Ü/g, "U")
+      .replace(/Ç/g, "C")
+      .replace(/Ş/g, "S")
+      .replace(/Ğ/g, "G");
     const data = await filterByCity(city);
     if (data) {
       const resp = responseModel(200, "Earthquake data", data);
