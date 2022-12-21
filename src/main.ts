@@ -3,8 +3,10 @@ import {getWord} from "./tdk";
 import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
 import {getSearchResult} from "./google";
 import {getYandexPhoto} from "./yandex";
-import {filterByCity, getEarthquake} from "./deprem";
+import {filterByCity, getEarthquake} from "./earthquake";
 import cors from "cors";
+import getCurrencies from "./currencies";
+import {getWiki, getWikiSearchResult} from "./wikipedia";
 const app: Application = express();
 app.use(express.urlencoded({extended: true}));
 app.use(cors());
@@ -12,31 +14,36 @@ const router = express.Router();
 const routers = [
   {
     path: "/",
-    method: "get",
+    method: "GET",
     detail: "root",
   },
   {
     path: "/tdk",
-    method: "get",
+    method: "GET",
     detail: "TDK API",
     example: "/tdk?q=kelime",
   },
   {
     path: "/google",
-    method: "get",
+    method: "GET",
     detail: "Google API",
     example: "/google/search?q=kedi",
   },
   {
     path: "/yandex",
-    method: "get",
+    method: "GET",
     detail: "Yandex API",
     example: "/yandex/img?q=kedi",
   },
   {
-    path: "/deprem",
-    method: "get",
-    detail: "Deprem API",
+    path: "/earthquake",
+    method: "GET",
+    detail: "Earthquake API",
+  },
+  {
+    path: "/currencies",
+    method: "GET",
+    detail: "TRY Currencies API",
   },
 ];
 
@@ -74,7 +81,6 @@ app.get("/tdk", async (req: Request, res: Response) => {
 });
 app.get("/tdk/oneri", async (req: Request, res: Response) => {
   const q = req.query.q;
-  console.log(q);
   if (!q) {
     return res.status(400).json({
       status: 400,
@@ -84,10 +90,22 @@ app.get("/tdk/oneri", async (req: Request, res: Response) => {
   } else {
     const words = await readAllWords();
     const possibleWords = words.filter((x: any) => x.startsWith(q));
-    console.log(possibleWords);
     if (possibleWords.length > 0) {
       const resp = responseModel(200, "Possible words", possibleWords);
       return res.status(200).json(resp);
+    } else if (possibleWords.length == 0) {
+      const includesWords = words.filter((x: any) => x.includes(q));
+      if (includesWords.length > 0) {
+        const resp = responseModel(
+          200,
+          "Possible words (include)",
+          includesWords
+        );
+        return res.status(200).json(resp);
+      } else {
+        const resp = responseModel(400, "Word not found", null);
+        return res.status(404).json(resp);
+      }
     } else {
       const resp = responseModel(400, "Word not found", null);
       return res.status(404).json(resp);
@@ -131,6 +149,7 @@ app.get("/google", async (req: Request, res: Response) => {
   });
   res.send(resp);
 });
+
 app.get("/google/search", async (req: Request, res: Response) => {
   const query = req.query.q;
   if (!query) {
@@ -154,7 +173,7 @@ app.get("/google/search", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/deprem", async (req: Request, res: Response) => {
+app.get("/earthquake", async (req: Request, res: Response) => {
   let query: any = req.query.city;
   if (query) {
     query = query.toLocaleUpperCase("en-US");
@@ -182,6 +201,62 @@ app.get("/deprem", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/currencies", async (req: Request, res: Response) => {
+  const data = await getCurrencies();
+  if (data) {
+    const resp = responseModel(200, "TRY Currencies Data", data);
+    return res.status(200).json(resp);
+  } else {
+    const resp = responseModel(400, "TRY Currencies Data not found", null);
+    return res.status(404).json(resp);
+  }
+});
+
+app.get("/wikipedia", async (req: Request, res: Response) => {
+  const query = req.query.q;
+  if (!query) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/wikipedia?q=Nikola_Tesla",
+    });
+    return res.status(400).json(resp);
+  } else {
+    const data = await getWikiSearchResult(query);
+    if (data) {
+      const resp = responseModel(
+        200,
+        `Wikipedia search results for ${query}`,
+        data
+      );
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(
+        400,
+        "Wikipedia search results not found",
+        null
+      );
+      return res.status(404).json(resp);
+    }
+  }
+});
+
+app.get("/wikipedia/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/wikipedia?q=Nikola_Tesla",
+    });
+    return res.status(400).json(resp);
+  } else {
+    const data = await getWiki(id);
+    if (data) {
+      const resp = responseModel(200, `Wikipedia results for ${id}`, data);
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(400, "Wikipedia data not found", null);
+      return res.status(404).json(resp);
+    }
+  }
+});
 setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
 
 app.listen(5000, () => {
