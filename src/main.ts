@@ -45,6 +45,12 @@ const routers = [
     method: "GET",
     detail: "TRY Currencies API",
   },
+  {
+    path: "/wikipedia",
+    method: "GET",
+    detail: "Wikipedia API",
+    examples: ["/wikipedia?q=kelime", "/wikipedia/Nikola_Tesla"],
+  },
 ];
 
 app.get("/", (req: Request, res: Response) => {
@@ -216,7 +222,7 @@ app.get("/wikipedia", async (req: Request, res: Response) => {
   const query = req.query.q;
   if (!query) {
     const resp = responseModel(400, "Query is required", null, {
-      example: "/wikipedia?q=Nikola_Tesla",
+      example: "/wikipedia?q=Nikola",
     });
     return res.status(400).json(resp);
   } else {
@@ -243,7 +249,7 @@ app.get("/wikipedia/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
   if (!id) {
     const resp = responseModel(400, "Query is required", null, {
-      example: "/wikipedia?q=Nikola_Tesla",
+      example: "/wikipedia/Nikola_Tesla",
     });
     return res.status(400).json(resp);
   } else {
