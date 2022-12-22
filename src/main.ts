@@ -1,4 +1,4 @@
-import express, {Application, Request, Response} from "express";
+import express, {Application, Request, Response, query} from "express";
 import {getWord} from "./tdk";
 import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
 import {getSearchResult} from "./google";
@@ -7,7 +7,7 @@ import {filterByCity, getEarthquake} from "./earthquake";
 import cors from "cors";
 import getCurrencies from "./currencies";
 import {getWiki, getWikiSearchResult} from "./wikipedia";
-import {getVideoInfo} from "./youtube";
+import {getVideoInfo, searchVideo} from "./youtube";
 const app: Application = express();
 app.use(express.urlencoded({extended: true}));
 app.use(cors());
@@ -51,6 +51,12 @@ const routers = [
     method: "GET",
     detail: "Wikipedia API",
     examples: ["/wikipedia?q=kelime", "/wikipedia/Nikola_Tesla"],
+  },
+  {
+    path: "/youtube",
+    method: "GET",
+    detail: "Youtube API",
+    examples: ["/youtube?q=kelime", "/youtube/5qap5aO4i9A"],
   },
 ];
 
@@ -265,13 +271,46 @@ app.get("/wikipedia/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/youtube/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/youtube?q=cbum",
+    });
+    return res.status(400).json(resp);
+  } else {
+    const data = await getVideoInfo(id);
+    if (data) {
+      const resp = responseModel(200, `Youtube search results for ${id}`, data);
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(400, "Invalid Video ID", null);
+      return res.status(404).json(resp);
+    }
+  }
+});
+
 app.get("/youtube", async (req: Request, res: Response) => {
-  const url = "https://www.youtube.com/watch?v=BaW_jenozKc";
-  const data = await getVideoInfo(url);
-  const resp = responseModel(200, "Youtube API", data, {
-    example: "/youtube?q=kedi",
-  });
-  res.send(resp);
+  const query = req.query.q;
+  if (!query) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/youtube?q=cbum",
+    });
+    return res.status(400).json(resp);
+  } else {
+    const data = await searchVideo(query);
+    if (data) {
+      const resp = responseModel(
+        200,
+        `Youtube search results for ${query}`,
+        data
+      );
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(400, "Youtube search results not found", null);
+      return res.status(404).json(resp);
+    }
+  }
 });
 
 setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
