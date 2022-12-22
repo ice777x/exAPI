@@ -7,6 +7,7 @@ import {filterByCity, getEarthquake} from "./earthquake";
 import cors from "cors";
 import getCurrencies from "./currencies";
 import {getWiki, getWikiSearchResult} from "./wikipedia";
+import {getVideoInfo} from "./youtube";
 const app: Application = express();
 app.use(express.urlencoded({extended: true}));
 app.use(cors());
@@ -263,6 +264,16 @@ app.get("/wikipedia/:id", async (req: Request, res: Response) => {
     }
   }
 });
+
+app.get("/youtube", async (req: Request, res: Response) => {
+  const url = "https://www.youtube.com/watch?v=BaW_jenozKc";
+  const data = await getVideoInfo(url);
+  const resp = responseModel(200, "Youtube API", data, {
+    example: "/youtube?q=kedi",
+  });
+  res.send(resp);
+});
+
 setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
 
 app.listen(5000, () => {

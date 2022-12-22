@@ -18,23 +18,19 @@ async function getEarthquake(): Promise<any> {
   const data = await fetchData();
   const regex: RegExp =
     /(\d{4}\.\d{2}\.\d{2})\s(\d{2}:\d{2}:\d{2})\s\s(\d+\.\d*)\s*(\d*\.\d*)\s*(\d*\.\d*)\s*([-\.-|]+|[\d*\.\d*])\s*(\d*\.\d*)\s*([-\.-|]+|[\d*\.\d*])\s*(\w+-\w+\s\(\w+\)|\w*(\s\(\w*\))?)/g;
-  const text: string = data.split("<pre>")[1].split("</pre>")[0];
-  const results = data
-    .split("<pre>")[1]
-    .split("</pre>")[0]
-    .match(regex)
-    .map((item: any) => {
-      const data = item.split(/\s+/g);
-      return {
-        date: data[0],
-        time: data[1],
-        latitude: data[2],
-        longitude: data[3],
-        depth: data[4],
-        magnitude: data[6],
-        location: data.slice(8).join(" "),
-      };
-    });
+  const text = data.split("<pre>")[1].split("</pre>")[0];
+  const results = text.match(regex).map((item: any) => {
+    const data = item.split(/\s+/g);
+    return {
+      date: data[0],
+      time: data[1],
+      latitude: data[2],
+      longitude: data[3],
+      depth: data[4],
+      magnitude: data[6],
+      location: data.slice(8).join(" "),
+    };
+  });
   return results;
 }
 
