@@ -7,6 +7,7 @@ const getVideoInfo = async (url: any) => {
 
     const player_response = info.player_response;
     const video = {
+      id: player_response.videoDetails.videoId,
       title: player_response.videoDetails.title,
       description: player_response.videoDetails.shortDescription,
       thumbnail:
