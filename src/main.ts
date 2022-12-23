@@ -1,15 +1,15 @@
-import express, {Application, Request, Response, query} from "express";
-import {getWord} from "./tdk";
-import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
-import {getSearchResult} from "./google";
-import {getYandexPhoto} from "./yandex";
-import {filterByCity, getEarthquake} from "./earthquake";
+import express, { Application, Request, Response, query } from "express";
+import { getWord } from "./tdk";
+import { readAllWords, writeWordToJson, responseModel } from "../utils/words";
+import { getSearchResult } from "./google";
+import { getYandexPhoto } from "./yandex";
+import { filterByCity, getEarthquake } from "./earthquake";
 import cors from "cors";
 import getCurrencies from "./currencies";
-import {getWiki, getWikiSearchResult} from "./wikipedia";
-import {getVideoInfo, searchVideo} from "./youtube";
+import { getWiki, getWikiSearchResult } from "./wikipedia";
+import { getVideoInfo, searchVideo } from "./youtube";
 const app: Application = express();
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 const router = express.Router();
 const routers = [
@@ -56,12 +56,12 @@ const routers = [
     path: "/youtube",
     method: "GET",
     detail: "Youtube API",
-    examples: ["/youtube?q=kelime", "/youtube/5qap5aO4i9A"],
+    examples: ["/youtube?q=allegro", "/youtube/5Ki25nbh_c8"],
   },
 ];
 
 app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({response: routers});
+  res.status(200).json({ response: routers });
 });
 
 app.use((req, res, next) => {
@@ -203,14 +203,15 @@ app.get("/earthquake", async (req: Request, res: Response) => {
       const resp = responseModel(400, "Earthquake data not found", null);
       return res.status(404).json(resp);
     }
-  }
-  const data = await getEarthquake();
-  if (data) {
-    const resp = responseModel(200, "Earthquake data", data);
-    return res.status(200).json(resp);
   } else {
-    const resp = responseModel(400, "Earthquake data not found", null);
-    return res.status(404).json(resp);
+    const data = await getEarthquake();
+    if (data) {
+      const resp = responseModel(200, "Earthquake data", data);
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(400, "Earthquake data not found", null);
+      return res.status(404).json(resp);
+    }
   }
 });
 
@@ -319,4 +320,4 @@ app.listen(5000, () => {
   console.log("server is running on port 3000");
 });
 
-export {router};
+export { router };
