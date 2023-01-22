@@ -30,7 +30,7 @@ async function getWiki(query: any) {
       if (el.tagName == "h2" || el.tagName == "h3") {
         const title = $(el).find("span.mw-headline").text().temizle();
         wiki.push(regeneratableList);
-        regeneratableList = {title: null, content: []};
+        regeneratableList = { title: null, content: [] };
         if (
           title == "Kaynakça" ||
           title == "Dış bağlantılar" ||
@@ -49,19 +49,20 @@ async function getWiki(query: any) {
             .map((i, el) => {
               list.push($(el).text().temizle());
             });
-          regeneratableList.content.push({list_content: list});
+          regeneratableList.content.push({ list_content: list });
         }
         return;
       } else {
         return;
       }
     });
+
   wiki.forEach((el: any) => {
     if (el.title === null) {
       wiki.splice(wiki.indexOf(el), 1);
     }
   });
-  return {content: wiki, images: images};
+  return { table: tableData(data), content: wiki, images: images };
 }
 
 async function getWikiSearchResult(query: any) {
@@ -79,6 +80,7 @@ async function getWikiSearchResult(query: any) {
     return {
       search_key: item.key,
       title: item.title,
+      tr_url: `https://tr.wikipedia.org/wiki/${item.key}`,
       description: item.description,
       thumbnail: item.thumbnail
         ? "https:" + item.thumbnail.url.replace("60px", "600px")
@@ -89,6 +91,48 @@ async function getWikiSearchResult(query: any) {
   return items;
 }
 
+function tableData(data: any) {
+  const $ = cheerio.load(data);
+  const table: any = [];
+  if ($("div.mw-parser-output table.sidebar").toArray().length > 0) {
+
+    $("div.mw-parser-output table.sidebar tr").map((i, el) => {
+      let img = {}
+      if ($(el).find("td a.image").toArray().length > 0) {
+        Object.assign(img, { url: $(el).find("td a.image img").attr("src") });
+        Object.assign(img, { caption: $(el).find("td").text() });
+      };
+      const value = $(el).find('td').text()
+      // const key = $(el).find("th").text().temizle();
+      // const value = $(el).find("td").text().temizle();
+      // if (key == "") return;
+      table.push({
+        value,
+        img: img ? img : null
+      })
+    })
+  } else if ($("div.mw-parser-output table.infobox").toArray().length > 0) {
+    $("div.mw-parser-output table.infobox tr").map((i, el) => {
+      let img = {}
+      console.log($(el).find("td a.image").toArray().length)
+      if ($(el).find("td a.image").toArray().length > 0) {
+        Object.assign(img, { url: "https:" + $(el).find("td a.image img").attr("src") });
+        Object.assign(img, { caption: $(el).find("td").text().temizle() });
+      };
+      const key = $(el).find('th').text().temizle()
+      const value = $(el).find('td').text().temizle()
+      // return $(el).text().temizle()
+      table.push({
+        key,
+        value,
+        img: img != Object() ? img : null,
+      })
+    })
+    return table;
+  }
+  return table;
+}
+
 declare global {
   interface String {
     temizle(): string;
@@ -96,7 +140,7 @@ declare global {
 }
 String.prototype.temizle = function (): string {
   var target = String(this);
-  return String(target.replace(/\[\d*\]/gim, "").replace(/\n/gim, ""));
+  return String(target.replace(/\[\d*\]/gim, "").replace(/\n/gim, " ").trim());
 };
 
-export {getWikiSearchResult, getWiki};
+export { getWikiSearchResult, getWiki };

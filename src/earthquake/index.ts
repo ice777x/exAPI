@@ -42,4 +42,4 @@ async function filterByCity(city: string): Promise<any> {
   return filteredData;
 }
 
-export {getEarthquake, filterByCity};
+export { getEarthquake, filterByCity };

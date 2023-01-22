@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, query } from "express";
+import express, { Application, Request, Response, query, response } from "express";
 import { getWord } from "./tdk";
 import { readAllWords, writeWordToJson, responseModel } from "../utils/words";
 import { getSearchResult } from "./google";
@@ -8,6 +8,13 @@ import cors from "cors";
 import getCurrencies from "./currencies";
 import { getWiki, getWikiSearchResult } from "./wikipedia";
 import { getVideoInfo, searchVideo } from "./youtube";
+import { getLyrics } from "./lyrics";
+import { enSonHaber, pusholder } from "./news";
+import CNN from "./news/cnn";
+import TRT from "./news/trt";
+import hurriyet from "./news/hurriyet";
+import haberturk from "./news/haberturk";
+
 const app: Application = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
@@ -22,29 +29,31 @@ const routers = [
     path: "/tdk",
     method: "GET",
     detail: "TDK API",
-    example: "/tdk?q=kelime",
+    examples: ["/tdk?q=kelime", "/tdk/oneri?q=kelime"],
   },
   {
     path: "/google",
     method: "GET",
     detail: "Google API",
-    example: "/google/search?q=kedi",
+    examples: ["/google/search?q=kedi"],
   },
   {
     path: "/yandex",
     method: "GET",
     detail: "Yandex API",
-    example: "/yandex/img?q=kedi",
+    examples: ["/yandex/img?q=kedi"],
   },
   {
     path: "/earthquake",
     method: "GET",
     detail: "Earthquake API",
+    examples: ["/earthquake", "/earthquake?city=istanbul"],
   },
   {
     path: "/currencies",
     method: "GET",
     detail: "TRY Currencies API",
+    examples: ["/currencies"],
   },
   {
     path: "/wikipedia",
@@ -56,7 +65,13 @@ const routers = [
     path: "/youtube",
     method: "GET",
     detail: "Youtube API",
-    examples: ["/youtube?q=allegro", "/youtube/5Ki25nbh_c8"],
+    examples: ["/youtube?q=allegro", "/youtube/C-wu2VcYNCA"],
+  },
+  {
+    path: "/news",
+    method: "GET",
+    detail: "Youtube API",
+    examples: ['/news/trt', '/news/pusholder'],
   },
 ];
 
@@ -70,6 +85,11 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+app.get("/lyrics", async (req: Request, res: Response) => {
+  const data = await getLyrics("Yasl Amca", "Sabaha Kadar");
+  res.send({ data });
+})
 
 app.get("/tdk", async (req: Request, res: Response) => {
   const query = req.query.q;
@@ -92,6 +112,92 @@ app.get("/tdk", async (req: Request, res: Response) => {
     }
   }
 });
+app.get("/news", async (req: Request, res: Response) => {
+  const newsRouter = [
+    {
+      path: "/news/cnn",
+      publisher: "CNN",
+    },
+    {
+      path: "/news/trt",
+      publisher: "TRT",
+    },
+    {
+      path: "/news/ensonhaber",
+      publisher: "En Son Haber"
+    },
+    {
+      path: "/news/pusholder",
+      publisher: "Pusholder"
+    },
+    {
+      path: "/news/haberturk",
+      publisher: "Habertürk"
+    },
+    {
+      path: "/news/hurriyet",
+      publisher: "Hürriyet"
+    },
+  ]
+  res.status(200).json(newsRouter);
+})
+app.get("/news/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (id) {
+    if (id == "cnn") {
+      const data = await CNN();
+      const resp = responseModel(200, "CNN", data, { publisher: "CNN" });
+      res.status(200).json(resp);
+    } else if (id == "trt") {
+      const data = await TRT();
+      if (data) {
+        const resp = responseModel(200, "TRT", data, { publisher: "TRT" });
+        res.status(200).json(resp)
+      } else {
+        const resp = responseModel(400, 'Data not found', null, { publisher: "TRT" })
+        res.status(400).json(resp)
+      }
+    } else if (id == "ensonhaber") {
+      const data = await enSonHaber();
+      if (data) {
+        const resp = responseModel(200, "En Son Haber", data, { publisher: "ensonhaber" })
+        res.status(200).json(resp)
+      } else {
+        const resp = responseModel(400, "Data not found", null, { publisher: "ensonhaber" })
+        res.status(400).json(resp)
+      }
+    } else if (id == "pusholder") {
+      const data = await pusholder();
+      if (data) {
+        const resp = responseModel(200, "Pusholder", data, { publisher: "pusholder" })
+        res.status(200).json(resp)
+      } else {
+        const resp = responseModel(400, "Data not found", null, { publisher: "pusholder" })
+        res.status(400).json(resp)
+      }
+    } else if (id == "hurriyet") {
+      const data = await hurriyet();
+      if (data) {
+        const resp = responseModel(200, "Hürriyet", data, { publisher: "hurriyet" })
+        res.status(200).json(resp)
+      } else {
+        const resp = responseModel(400, "Data not found", null, { publisher: "hurriyet" })
+        res.status(400).json(resp)
+      }
+    } else if (id == "haberturk") {
+      const data = await haberturk();
+      if (data) {
+        const resp = responseModel(200, "Habertürk", data, { publisher: "haberturk" })
+        res.status(200).json(resp)
+      } else {
+        const resp = responseModel(400, "Data not found", null, { publisher: "haberturk" })
+        res.status(400).json(resp)
+      }
+    }
+
+  }
+})
+
 app.get("/tdk/oneri", async (req: Request, res: Response) => {
   const q = req.query.q;
   if (!q) {
@@ -281,6 +387,7 @@ app.get("/youtube/:id", async (req: Request, res: Response) => {
     return res.status(400).json(resp);
   } else {
     const data = await getVideoInfo(id);
+    console.log(data)
     if (data) {
       const resp = responseModel(200, `Youtube search results for ${id}`, data);
       return res.status(200).json(resp);
@@ -317,7 +424,7 @@ app.get("/youtube", async (req: Request, res: Response) => {
 setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
 
 app.listen(5000, () => {
-  console.log("server is running on port 3000");
+  console.log("server is running on port 5000");
 });
 
 export { router };
