@@ -1,36 +1,50 @@
-import ytdl from "ytdl-core";
 import yts from "yt-search";
-import fs from 'fs'
+import youtubeDl from "youtube-dl-exec";
 
 const getVideoInfo = async (url: any) => {
   try {
-    const info = await ytdl.getInfo(url);
-    const player_response = info.player_response;
-    const video = {
-      id: player_response.videoDetails.videoId,
-      title: player_response.videoDetails.title,
-      description: player_response.videoDetails.shortDescription,
-      thumbnail:
+    const output = await youtubeDl(url, {
+      dumpSingleJson: true,
+      noWarnings: true,
+      noCheckCertificates: true,
+      preferFreeFormats: true,
+      youtubeSkipDashManifest: true,
+      skipDownload: true,
+      format: "best",
+      addHeader: [
+        'referer:youtube.com',
+        'user-agent:googlebot'
+      ]
+    });
+    const date_regexp = /(\d{4})(\d{2})(\d{2})/g
+    const date = date_regexp.exec(output.upload_date)?.slice(1, 4).join('-')
+    const result = {
+      id: output.id,
+      title: output.title,
+      thumbnail: output.thumbnail,
+      original_url: output.webpage_url,
+      description: output.description,
+      channel: {
+        name: output.uploader,
+        id: output.uploader_id,
+        url: output.uploader_url,
         // @ts-ignore
-        player_response.videoDetails.thumbnail.thumbnails[
-          // @ts-ignore
-          player_response.videoDetails.thumbnail.thumbnails.length - 1
-        ].url,
-      duration: player_response.videoDetails.lengthSeconds,
-      views: player_response.videoDetails.viewCount,
-      author: player_response.videoDetails.author,
-      source: player_response.streamingData.formats.map((x: any) => {
-        return {
-          url: x.url,
-          quality: x.qualityLabel,
-          type: x.mimeType,
-          size: x.contentLength,
-          bitrate: x.bitrate,
-        };
-      }),
-      related_videos: info.related_videos
-    };
-    return video;
+        followers: output.channel_follower_count
+      },
+      url: output.url,
+      resolution: output.width + "x" + output.height,
+      duration: {
+        // @ts-ignore
+        duration_string: output.duration_string,
+        duration_number: output.duration,
+      },
+      upload_date: date ? date : output.upload_date,
+      categories: output.categories ? output.categories : [],
+      tags: output.tags ? output.tags : [],
+      view_count: output.view_count,
+      like_count: output.like_count,
+    }
+    return result;
   } catch (e) {
     return false;
   }

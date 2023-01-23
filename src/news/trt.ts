@@ -51,7 +51,13 @@ export default async function TRT() {
         item['content'] = await scraperTRT(item.link)
         return item
     }))
-    return result
+    const returnResult = {
+        title: $("channel > title").text().trim(),
+        sourceUrl: $("channel > link").text().trim(),
+        description: $("channel > description").text().trim(),
+        data: result
+    }
+    return returnResult
 }
 
 async function scraperTRT(url: string) {

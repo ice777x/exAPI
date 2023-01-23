@@ -1,11 +1,10 @@
+import cors from "cors";
 import express, { Application, Request, Response, query, response } from "express";
 import { getWord } from "./tdk";
 import { readAllWords, writeWordToJson, responseModel } from "../utils/words";
 import { getSearchResult } from "./google";
 import { getYandexPhoto } from "./yandex";
 import { filterByCity, getEarthquake } from "./earthquake";
-import cors from "cors";
-import getCurrencies from "./currencies";
 import { getWiki, getWikiSearchResult } from "./wikipedia";
 import { getVideoInfo, searchVideo } from "./youtube";
 import { getLyrics } from "./lyrics";
@@ -14,6 +13,7 @@ import CNN from "./news/cnn";
 import TRT from "./news/trt";
 import hurriyet from "./news/hurriyet";
 import haberturk from "./news/haberturk";
+
 
 const app: Application = express();
 app.use(express.urlencoded({ extended: true }));
@@ -50,12 +50,6 @@ const routers = [
     examples: ["/earthquake", "/earthquake?city=istanbul"],
   },
   {
-    path: "/currencies",
-    method: "GET",
-    detail: "TRY Currencies API",
-    examples: ["/currencies"],
-  },
-  {
     path: "/wikipedia",
     method: "GET",
     detail: "Wikipedia API",
@@ -85,6 +79,8 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+
 
 app.get("/lyrics", async (req: Request, res: Response) => {
   const data = await getLyrics("Yasl Amca", "Sabaha Kadar");
@@ -321,16 +317,6 @@ app.get("/earthquake", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/currencies", async (req: Request, res: Response) => {
-  const data = await getCurrencies();
-  if (data) {
-    const resp = responseModel(200, "TRY Currencies Data", data);
-    return res.status(200).json(resp);
-  } else {
-    const resp = responseModel(400, "TRY Currencies Data not found", null);
-    return res.status(404).json(resp);
-  }
-});
 
 app.get("/wikipedia", async (req: Request, res: Response) => {
   const query = req.query.q;
@@ -387,9 +373,8 @@ app.get("/youtube/:id", async (req: Request, res: Response) => {
     return res.status(400).json(resp);
   } else {
     const data = await getVideoInfo(id);
-    console.log(data)
     if (data) {
-      const resp = responseModel(200, `Youtube search results for ${id}`, data);
+      const resp = responseModel(200, `Youtube video details for ${data.title}`, data);
       return res.status(200).json(resp);
     } else {
       const resp = responseModel(400, "Invalid Video ID", null);
