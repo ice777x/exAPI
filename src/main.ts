@@ -287,6 +287,7 @@ app.get("/youtube/:id", async (req: Request, res: Response) => {
       );
       return res.status(200).json(resp);
     } else {
+      console.log(data);
       const resp = responseModel(400, "Invalid Video ID", null);
       return res.status(404).json(resp);
     }

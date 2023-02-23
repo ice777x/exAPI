@@ -45,6 +45,7 @@ const getVideoInfo = async (url: any) => {
     };
     return result;
   } catch (e) {
+    console.log(e);
     return false;
   }
 };
