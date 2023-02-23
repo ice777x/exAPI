@@ -11,13 +11,10 @@ const getVideoInfo = async (url: any) => {
       youtubeSkipDashManifest: true,
       skipDownload: true,
       format: "best",
-      addHeader: [
-        'referer:youtube.com',
-        'user-agent:googlebot'
-      ]
+      addHeader: ["referer:youtube.com", "user-agent:googlebot"],
     });
-    const date_regexp = /(\d{4})(\d{2})(\d{2})/g
-    const date = date_regexp.exec(output.upload_date)?.slice(1, 4).join('-')
+    const date_regexp = /(\d{4})(\d{2})(\d{2})/g;
+    const date = date_regexp.exec(output.upload_date)?.slice(1, 4).join("-");
     const result = {
       id: output.id,
       title: output.title,
@@ -29,7 +26,7 @@ const getVideoInfo = async (url: any) => {
         id: output.uploader_id,
         url: output.uploader_url,
         // @ts-ignore
-        followers: output.channel_follower_count
+        followers: output.channel_follower_count,
       },
       url: output.url,
       resolution: output.width + "x" + output.height,
@@ -43,7 +40,9 @@ const getVideoInfo = async (url: any) => {
       tags: output.tags ? output.tags : [],
       view_count: output.view_count,
       like_count: output.like_count,
-    }
+      // @ts-ignore
+      filesize: output.filesize_approx,
+    };
     return result;
   } catch (e) {
     return false;
@@ -73,4 +72,4 @@ const searchVideo = async (query: any) => {
   return videos;
 };
 
-export { getVideoInfo, searchVideo };
+export {getVideoInfo, searchVideo};
