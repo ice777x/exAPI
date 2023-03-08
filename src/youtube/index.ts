@@ -1,5 +1,4 @@
 import yts from "yt-search";
-import youtubeDl from "youtube-dl-exec";
 import ytdl from "ytdl-core";
 
 const getVideoInfo = async (url: any) => {
