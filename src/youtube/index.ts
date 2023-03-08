@@ -11,8 +11,6 @@ const getVideoInfo = async (url: any) => {
         },
       },
     });
-    console.log(info);
-    return {info};
     const video = {
       id: info.videoDetails.videoId,
       title: info.videoDetails.title,
@@ -20,15 +18,15 @@ const getVideoInfo = async (url: any) => {
       thumbnail: info.videoDetails.thumbnails.pop(),
       duration: +info.videoDetails.lengthSeconds,
       tags: info.videoDetails.keywords,
-      viewCount: info.videoDetails?.viewCount,
-      shortView:
-        // @ts-ignore
-        info.response.contents.twoColumnWatchNextResults.results.results
-          .contents[0].videoPrimaryInfoRenderer.viewCount.videoViewCountRenderer
-          .shortViewCount.simpleText,
-      // @ts-ignore
-      date: info.response.contents.twoColumnWatchNextResults.results.results
-        .contents[0].videoPrimaryInfoRenderer.dateText.simpleText,
+      // viewCount: info.videoDetails?.viewCount,
+      // shortView:
+      //   // @ts-ignore
+      //   info.response.contents.twoColumnWatchNextResults.results.results
+      //     .contents[0].videoPrimaryInfoRenderer.viewCount.videoViewCountRenderer
+      //     .shortViewCount.simpleText,
+      // // @ts-ignore
+      // date: info.response.contents.twoColumnWatchNextResults.results.results
+      //   .contents[0].videoPrimaryInfoRenderer.dateText.simpleText,
       author: info.videoDetails.author,
       source: info.formats
         .map((x: any) => {
