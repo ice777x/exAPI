@@ -14,18 +14,13 @@ const getVideoInfo = async (url: any) => {
 
     const player_response = info.player_response;
     const video = {
-      id: player_response.videoDetails.videoId,
-      title: player_response.videoDetails.title,
-      description: player_response.videoDetails.shortDescription,
-      thumbnail:
-        // @ts-ignore
-        player_response.videoDetails.thumbnail.thumbnails[
-          // @ts-ignore
-          player_response.videoDetails.thumbnail.thumbnails.length - 1
-        ],
-      duration: +player_response.videoDetails.lengthSeconds,
-      tags: player_response.videoDetails.keywords,
-      viewCount: player_response.videoDetails.viewCount,
+      id: info.videoDetails.videoId,
+      title: info.videoDetails.title,
+      description: info.videoDetails.description,
+      thumbnail: info.videoDetails.thumbnails.pop(),
+      duration: +info.videoDetails.lengthSeconds,
+      tags: info.videoDetails.keywords,
+      viewCount: info.videoDetails.viewCount,
       shortView:
         // @ts-ignore
         info.response.contents.twoColumnWatchNextResults.results.results
@@ -34,8 +29,8 @@ const getVideoInfo = async (url: any) => {
       // @ts-ignore
       date: info.response.contents.twoColumnWatchNextResults.results.results
         .contents[0].videoPrimaryInfoRenderer.dateText.simpleText,
-      length: player_response.videoDetails.lengthSeconds,
-      author: player_response.videoDetails.author,
+      length: info.videoDetails.lengthSeconds,
+      author: info.videoDetails.author,
       source: player_response.streamingData.formats.map((x: any) => {
         return {
           url: x.url,
