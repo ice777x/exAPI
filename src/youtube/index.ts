@@ -11,7 +11,7 @@ const getVideoInfo = async (url: any) => {
         },
       },
     });
-
+    console.log(info);
     const video = {
       id: info.videoDetails.videoId,
       title: info.videoDetails.title,
