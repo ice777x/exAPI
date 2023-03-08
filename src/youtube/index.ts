@@ -12,6 +12,7 @@ const getVideoInfo = async (url: any) => {
       },
     });
     console.log(info);
+    return {info};
     const video = {
       id: info.videoDetails.videoId,
       title: info.videoDetails.title,
@@ -19,7 +20,7 @@ const getVideoInfo = async (url: any) => {
       thumbnail: info.videoDetails.thumbnails.pop(),
       duration: +info.videoDetails.lengthSeconds,
       tags: info.videoDetails.keywords,
-      viewCount: info.videoDetails.viewCount,
+      viewCount: info.videoDetails?.viewCount,
       shortView:
         // @ts-ignore
         info.response.contents.twoColumnWatchNextResults.results.results

@@ -280,11 +280,7 @@ app.get("/youtube/:id", async (req: Request, res: Response) => {
   } else {
     const data = await getVideoInfo(id);
     if (data) {
-      const resp = responseModel(
-        200,
-        `Youtube video details for ${data.title}`,
-        data
-      );
+      const resp = responseModel(200, `Youtube video details for ${id}`, data);
       return res.status(200).json(resp);
     } else {
       console.log(data);
