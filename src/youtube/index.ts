@@ -12,7 +12,6 @@ const getVideoInfo = async (url: any) => {
       },
     });
 
-    const player_response = info.player_response;
     const video = {
       id: info.videoDetails.videoId,
       title: info.videoDetails.title,
@@ -29,23 +28,37 @@ const getVideoInfo = async (url: any) => {
       // @ts-ignore
       date: info.response.contents.twoColumnWatchNextResults.results.results
         .contents[0].videoPrimaryInfoRenderer.dateText.simpleText,
-      length: info.videoDetails.lengthSeconds,
       author: info.videoDetails.author,
-      source: player_response.streamingData.formats.map((x: any) => {
-        return {
-          url: x.url,
-          quality: x.qualityLabel,
-          type: x.mimeType,
-          size: x.contentLength,
-          bitrate: x.bitrate,
-        };
-      }),
+      source: info.formats
+        .map((x: any) => {
+          if ([18, 22, 251, 171].includes(x.itag)) {
+            return {
+              tag: x.itag,
+              url: x.url,
+              quality: x.qualityLabel,
+              audioQuality: x.audioQuality,
+              width: x.width,
+              height: x.height,
+              hasVideo: x.hasVideo,
+              hasAudio: x.hasAudio,
+              contentLength: x.contentLength,
+              audioChannels: x.audioChannels,
+              ext: x.container,
+              isLive: x.isLive,
+            };
+          }
+        })
+        .filter((x: any) => x),
       allFormats: info.formats.map((x: any) => {
         return {
+          tag: x.itag,
           url: x.url,
           quality: x.qualityLabel,
+          audioQuality: x.audioQuality,
           width: x.width,
           height: x.height,
+          hasVideo: x.hasVideo,
+          hasAudio: x.hasAudio,
           contentLength: x.contentLength,
           audioChannels: x.audioChannels,
           ext: x.container,
