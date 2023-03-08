@@ -10,7 +10,7 @@ const getVideoInfo = async (url: any) => {
       preferFreeFormats: true,
       youtubeSkipDashManifest: true,
       skipDownload: true,
-      format: "18, 22,171,251",
+      format: "171, 251, 18, 22",
       addHeader: ["referer:youtube.com", "user-agent:googlebot"],
     });
     const date_regexp = /(\d{4})(\d{2})(\d{2})/g;
@@ -46,7 +46,6 @@ const getVideoInfo = async (url: any) => {
         });
       }
     });
-
     const result = {
       id: output.id,
       title: output.title,
@@ -74,7 +73,7 @@ const getVideoInfo = async (url: any) => {
       like_count: output.like_count,
       formats: alternate_object,
       // @ts-ignore
-      filesize: output.filesize_approx,
+      filesize: output.filesize || output.filesize_approx,
       alternateFormats: output.formats
         .map((x: any) => {
           if (x.audio_ext === "none" && x.video_ext === "none") return;
