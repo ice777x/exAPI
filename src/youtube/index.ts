@@ -78,6 +78,7 @@ const getVideoInfo = async (url: any) => {
     };
     return video;
   } catch (e) {
+    console.log(e);
     return false;
   }
 };
