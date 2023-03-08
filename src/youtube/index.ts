@@ -28,6 +28,7 @@ const getVideoInfo = async (url: any) => {
       // date: info.response.contents.twoColumnWatchNextResults.results.results
       //   .contents[0].videoPrimaryInfoRenderer.dateText.simpleText,
       author: info.videoDetails.author,
+      // authorId: info.videoDetails?.authorId,
       source: info.formats
         .map((x: any) => {
           if ([18, 22, 251, 171].includes(x.itag)) {
