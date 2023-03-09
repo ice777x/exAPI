@@ -1,50 +1,34 @@
 import yts from "yt-search";
-import ytdl from "ytdl-core";
+import ytdl, {getInfoOptions} from "ytdl-core";
 
 const getVideoInfo = async (url: any) => {
   try {
-    const info = await ytdl.getInfo(url, {
-      requestOptions: {
-        headers: {
-          "user-agent": "googlebot",
-          referer: "youtube.com",
-        },
-      },
-    });
+    const info = await ytdl.getInfo(url, {lang: "tr"});
     const video = {
       id: info.videoDetails.videoId,
       title: info.videoDetails.title,
       description: info.videoDetails.description,
       thumbnail: info.videoDetails.thumbnails.pop(),
       duration: +info.videoDetails.lengthSeconds,
+      views: +info.videoDetails.viewCount,
       tags: info.videoDetails.keywords,
-      // viewCount: info.videoDetails?.viewCount,
-      // shortView:
-      //   // @ts-ignore
-      //   info.response.contents.twoColumnWatchNextResults.results.results
-      //     .contents[0].videoPrimaryInfoRenderer.viewCount.videoViewCountRenderer
-      //     .shortViewCount.simpleText,
-      // // @ts-ignore
-      // date: info.response.contents.twoColumnWatchNextResults.results.results
-      //   .contents[0].videoPrimaryInfoRenderer.dateText.simpleText,
       author: info.videoDetails.author,
-      // authorId: info.videoDetails?.authorId,
       source: info.formats
         .map((x: any) => {
-          if ([18, 22, 251, 171].includes(x.itag)) {
+          if ([18, 22, 251, 171, 250].includes(x.itag)) {
             return {
               tag: x.itag,
               url: x.url,
               quality: x.qualityLabel,
               audioQuality: x.audioQuality,
-              width: x.width,
-              height: x.height,
-              hasVideo: x.hasVideo,
-              hasAudio: x.hasAudio,
               contentLength: x.contentLength,
               audioChannels: x.audioChannels,
               ext: x.container,
               isLive: x.isLive,
+              width: x.width,
+              height: x.height,
+              hasVideo: x.hasVideo,
+              hasAudio: x.hasAudio,
             };
           }
         })
