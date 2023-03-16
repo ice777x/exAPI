@@ -6,19 +6,21 @@ import express, {
   query,
   response,
 } from "express";
+import fs from "fs";
 import {getWord} from "./tdk";
 import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
 import {getSearchResult} from "./google";
 import {getYandexPhoto} from "./yandex";
 import {filterByCity, getEarthquake} from "./earthquake";
 import {getWiki, getWikiSearchResult} from "./wikipedia";
-import {getVideoInfo, searchVideo} from "./youtube";
+import {downloadFile, getVideoInfo, searchVideo} from "./youtube";
 import {getLyrics} from "./lyrics";
+import ytdl from "@distube/ytdl-core";
+import path from "path";
 
 const app: Application = express();
 app.use(express.urlencoded({extended: true}));
 app.use(cors());
-const router = express.Router();
 const routers = [
   {
     path: "/",
@@ -290,6 +292,153 @@ app.get("/youtube/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/youtube/:id/audio/", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/youtube?q=cbum",
+    });
+    return res.status(400).json(resp);
+  } else {
+    if (!fs.existsSync(`${__dirname}/youtube/${id}.mp3`)) {
+      fs.readdir(`${__dirname}/youtube`, (err, files) => {
+        if (err) throw err;
+        for (const file of files) {
+          if (file.endsWith(".mp3")) {
+            fs.unlink(path.join(`${__dirname}/youtube`, file), (err) => {
+              if (err) throw err;
+            });
+          }
+        }
+      });
+      const data = await getVideoInfo(`https://www.youtube.com/watch?v=${id}`);
+      if (data) {
+        if (data.source.find((item: any) => item.tag === 251)) {
+          await downloadFile(
+            data.source.find((item: any) => item.tag === 251)!.url,
+            id,
+            "mp3"
+          );
+        } else {
+          await downloadFile(
+            data.source.find((item: any) => item.tag === 250)!.url,
+            id,
+            "mp3"
+          );
+        }
+      } else {
+        const resp = responseModel(400, "Invalid Video ID", null);
+        return res.status(404).json(resp);
+      }
+    }
+    const paths = `${__dirname}/youtube/${id}.mp3`;
+    try {
+      const stats = fs.statSync(paths);
+
+      const {size} = stats;
+
+      const {range} = req.headers;
+
+      const start = Number((range || "").replace(/bytes=/, "").split("-")[0]);
+      const end = size - 1;
+      const chunkSize = end - start + 1;
+
+      const stream = fs.createReadStream(paths, {start, end});
+
+      const head = {
+        "Content-Range": `bytes ${start}-${end}/${size}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": "audio/mpeg",
+      };
+
+      res.writeHead(206, head);
+
+      stream.pipe(res);
+    } catch (err) {
+      console.log(err);
+
+      return res.send(404).json({
+        status: "ERR",
+        message: err,
+      });
+    }
+  }
+});
+
+app.get("/youtube/:id/video/", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/youtube?q=cbum",
+    });
+    return res.status(400).json(resp);
+  } else {
+    if (!fs.existsSync(`${__dirname}/youtube/${id}.mp4`)) {
+      fs.readdir(`${__dirname}/youtube`, (err, files) => {
+        if (err) throw err;
+        for (const file of files) {
+          if (file.endsWith(".mp3") || file.endsWith(".mp4")) {
+            fs.unlink(path.join(`${__dirname}/youtube`, file), (err) => {
+              if (err) throw err;
+            });
+          }
+        }
+      });
+      const data = await getVideoInfo(`https://www.youtube.com/watch?v=${id}`);
+      if (data) {
+        if (data.source.find((item: any) => item.tag === 22)) {
+          await downloadFile(
+            data.source.find((item: any) => item.tag === 22)!.url,
+            id,
+            "mp4"
+          );
+        } else {
+          await downloadFile(
+            data.source.find((item: any) => item.tag === 18)!.url,
+            id,
+            "mp4"
+          );
+        }
+      } else {
+        const resp = responseModel(400, "Invalid Video ID", null);
+        return res.status(404).json(resp);
+      }
+    }
+    const paths = `${__dirname}/youtube/${id}.mp4`;
+    try {
+      const stats = fs.statSync(paths);
+
+      const {size} = stats;
+
+      const {range} = req.headers;
+
+      const start = Number((range || "").replace(/bytes=/, "").split("-")[0]);
+      const end = size - 1;
+      const chunkSize = end - start + 1;
+
+      const stream = fs.createReadStream(paths, {start, end});
+
+      const head = {
+        "Content-Range": `bytes ${start}-${end}/${size}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": "video/mp4",
+      };
+
+      res.writeHead(206, head);
+
+      stream.pipe(res);
+    } catch (err) {
+      console.log(err);
+
+      return res.send(404).json({
+        status: "ERR",
+        message: err,
+      });
+    }
+  }
+});
 app.get("/youtube", async (req: Request, res: Response) => {
   const query = req.query.q;
   if (!query) {
@@ -318,5 +467,3 @@ setInterval(writeWordToJson, 1000 * 60 * 60 * 24);
 app.listen(5000, () => {
   console.log("server is running on port 5000");
 });
-
-export {router};

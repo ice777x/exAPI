@@ -1,5 +1,26 @@
 import yts from "yt-search";
-import ytdl, {getInfoOptions} from "ytdl-core";
+import ytdl from "ytdl-core";
+import path from "path";
+import fs from "fs";
+import axios from "axios";
+
+async function downloadFile(url: string, id: string, ext: string) {
+  const paths = path.resolve(__dirname, `${id}.${ext}`);
+  const writer = fs.createWriteStream(paths);
+
+  const response = await axios({
+    url,
+    method: "GET",
+    responseType: "stream",
+  });
+
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+}
 
 const getVideoInfo = async (url: any) => {
   try {
@@ -91,4 +112,4 @@ const searchVideo = async (query: any) => {
   return videos;
 };
 
-export {getVideoInfo, searchVideo};
+export {getVideoInfo, searchVideo, downloadFile};

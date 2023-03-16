@@ -18,6 +18,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.11.7",
     "axios": "^1.2.1",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
