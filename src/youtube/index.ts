@@ -5,7 +5,7 @@ import fs from "fs";
 import axios from "axios";
 
 async function downloadFile(url: string, id: string, ext: string) {
-  const paths = path.resolve(__dirname, `${id}.${ext}`);
+  const paths = path.resolve(`tmp/${id}.${ext}`);
   const writer = fs.createWriteStream(paths);
 
   const response = await axios({

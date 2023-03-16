@@ -300,12 +300,12 @@ app.get("/youtube/:id/audio/", async (req: Request, res: Response) => {
     });
     return res.status(400).json(resp);
   } else {
-    if (!fs.existsSync(`${__dirname}/youtube/${id}.mp3`)) {
-      fs.readdir(`${__dirname}/youtube`, (err, files) => {
+    if (!fs.existsSync(`tmp/${id}.mp3`)) {
+      fs.readdir(`tmp`, (err, files) => {
         if (err) throw err;
         for (const file of files) {
           if (file.endsWith(".mp3")) {
-            fs.unlink(path.join(`${__dirname}/youtube`, file), (err) => {
+            fs.unlink(path.join(`tmp`, file), (err) => {
               if (err) throw err;
             });
           }
@@ -331,7 +331,7 @@ app.get("/youtube/:id/audio/", async (req: Request, res: Response) => {
         return res.status(404).json(resp);
       }
     }
-    const paths = `${__dirname}/youtube/${id}.mp3`;
+    const paths = `tmp/${id}.mp3`;
     try {
       const stats = fs.statSync(paths);
 
@@ -374,12 +374,12 @@ app.get("/youtube/:id/video/", async (req: Request, res: Response) => {
     });
     return res.status(400).json(resp);
   } else {
-    if (!fs.existsSync(`${__dirname}/youtube/${id}.mp4`)) {
-      fs.readdir(`${__dirname}/youtube`, (err, files) => {
+    if (!fs.existsSync(`tmp/${id}.mp4`)) {
+      fs.readdir(`/tmp`, (err, files) => {
         if (err) throw err;
         for (const file of files) {
           if (file.endsWith(".mp3") || file.endsWith(".mp4")) {
-            fs.unlink(path.join(`${__dirname}/youtube`, file), (err) => {
+            fs.unlink(path.join(`tmp`, file), (err) => {
               if (err) throw err;
             });
           }
@@ -405,7 +405,7 @@ app.get("/youtube/:id/video/", async (req: Request, res: Response) => {
         return res.status(404).json(resp);
       }
     }
-    const paths = `${__dirname}/youtube/${id}.mp4`;
+    const paths = `tmp/${id}.mp4`;
     try {
       const stats = fs.statSync(paths);
 
