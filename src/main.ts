@@ -7,25 +7,31 @@ import express, {
   response,
 } from "express";
 import fs from "fs";
-import {getWord} from "./tdk";
-import {readAllWords, writeWordToJson, responseModel} from "../utils/words";
-import {getSearchResult} from "./google";
-import {getYandexPhoto} from "./yandex";
-import {filterByCity, getEarthquake} from "./earthquake";
-import {getWiki, getWikiSearchResult} from "./wikipedia";
-import {downloadFile, getVideoInfo, searchVideo} from "./youtube";
-import {getLyrics} from "./lyrics";
-import ytdl from "@distube/ytdl-core";
+import { getWord } from "./tdk";
+import { readAllWords, writeWordToJson, responseModel } from "../utils/words";
+import { getSearchResult } from "./google";
+import { getYandexPhoto } from "./yandex";
+import { filterByCity, getEarthquake } from "./earthquake";
+import { getWiki, getWikiSearchResult } from "./wikipedia";
+import { downloadFile, getVideoInfo, searchVideo } from "./youtube";
+import { getLyrics } from "./lyrics";
 import path from "path";
+import Library from "./library";
 
 const app: Application = express();
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 const routers = [
   {
     path: "/",
     method: "GET",
     detail: "root",
+  },
+  {
+    path: "/library",
+    method: "GET",
+    detail: "Library API",
+    examples: ["/library?q=ittihat"],
   },
   {
     path: "/tdk",
@@ -66,7 +72,7 @@ const routers = [
 ];
 
 app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({response: routers});
+  res.status(200).json({ response: routers });
 });
 
 app.use((req, res, next) => {
@@ -78,7 +84,27 @@ app.use((req, res, next) => {
 
 app.get("/lyrics", async (req: Request, res: Response) => {
   const data = await getLyrics("Yasl Amca", "Sabaha Kadar");
-  res.send({data});
+  res.send({ data });
+});
+
+app.get("/library", async (req: Request, res: Response) => {
+  const query = req.query.q;
+  if (!query) {
+    return res.status(400).json({
+      status: 200,
+      message: "Library API",
+      example: "/library?q=ittihat",
+    });
+  } else {
+    const library = await Library(query as string);
+    if (library) {
+      const resp = responseModel(200, "Library API", library);
+      return res.status(200).json(resp);
+    } else {
+      const resp = responseModel(400, "Query not found", null);
+      return res.status(404).json(resp);
+    }
+  }
 });
 
 app.get("/tdk", async (req: Request, res: Response) => {
@@ -335,15 +361,15 @@ app.get("/youtube/:id/audio/", async (req: Request, res: Response) => {
     try {
       const stats = fs.statSync(paths);
 
-      const {size} = stats;
+      const { size } = stats;
 
-      const {range} = req.headers;
+      const { range } = req.headers;
 
       const start = Number((range || "").replace(/bytes=/, "").split("-")[0]);
       const end = size - 1;
       const chunkSize = end - start + 1;
 
-      const stream = fs.createReadStream(paths, {start, end});
+      const stream = fs.createReadStream(paths, { start, end });
 
       const head = {
         "Content-Range": `bytes ${start}-${end}/${size}`,
@@ -409,15 +435,15 @@ app.get("/youtube/:id/video/", async (req: Request, res: Response) => {
     try {
       const stats = fs.statSync(paths);
 
-      const {size} = stats;
+      const { size } = stats;
 
-      const {range} = req.headers;
+      const { range } = req.headers;
 
       const start = Number((range || "").replace(/bytes=/, "").split("-")[0]);
       const end = size - 1;
       const chunkSize = end - start + 1;
 
-      const stream = fs.createReadStream(paths, {start, end});
+      const stream = fs.createReadStream(paths, { start, end });
 
       const head = {
         "Content-Range": `bytes ${start}-${end}/${size}`,
