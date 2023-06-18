@@ -95,39 +95,40 @@ function tableData(data: any) {
   const $ = cheerio.load(data);
   const table: any = [];
   if ($("div.mw-parser-output table.sidebar").toArray().length > 0) {
-
     $("div.mw-parser-output table.sidebar tr").map((i, el) => {
-      let img = {}
+      let img = {};
       if ($(el).find("td a.image").toArray().length > 0) {
         Object.assign(img, { url: $(el).find("td a.image img").attr("src") });
         Object.assign(img, { caption: $(el).find("td").text() });
-      };
-      const value = $(el).find('td').text()
+      }
+      const value = $(el).find("td").text();
       // const key = $(el).find("th").text().temizle();
       // const value = $(el).find("td").text().temizle();
       // if (key == "") return;
       table.push({
         value,
-        img: img ? img : null
-      })
-    })
+        img: img ? img : null,
+      });
+    });
   } else if ($("div.mw-parser-output table.infobox").toArray().length > 0) {
     $("div.mw-parser-output table.infobox tr").map((i, el) => {
-      let img = {}
-      console.log($(el).find("td a.image").toArray().length)
+      let img = {};
+      console.log($(el).find("td a.image").toArray().length);
       if ($(el).find("td a.image").toArray().length > 0) {
-        Object.assign(img, { url: "https:" + $(el).find("td a.image img").attr("src") });
+        Object.assign(img, {
+          url: "https:" + $(el).find("td a.image img").attr("src"),
+        });
         Object.assign(img, { caption: $(el).find("td").text().temizle() });
-      };
-      const key = $(el).find('th').text().temizle()
-      const value = $(el).find('td').text().temizle()
+      }
+      const key = $(el).find("th").text().temizle();
+      const value = $(el).find("td").text().temizle();
       // return $(el).text().temizle()
       table.push({
         key,
         value,
         img: img != Object() ? img : null,
-      })
-    })
+      });
+    });
     return table;
   }
   return table;
@@ -140,7 +141,12 @@ declare global {
 }
 String.prototype.temizle = function (): string {
   var target = String(this);
-  return String(target.replace(/\[\d*\]/gim, "").replace(/\n/gim, " ").trim());
+  return String(
+    target
+      .replace(/\[\d*\]/gim, "")
+      .replace(/\n/gim, " ")
+      .trim()
+  );
 };
 
 export { getWikiSearchResult, getWiki };

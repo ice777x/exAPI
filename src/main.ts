@@ -17,6 +17,7 @@ import { downloadFile, getVideoInfo, searchVideo } from "./youtube";
 import { getLyrics } from "./lyrics";
 import path from "path";
 import Library from "./library";
+import { getNews } from "./news";
 
 const app: Application = express();
 app.use(express.urlencoded({ extended: true }));
@@ -26,6 +27,12 @@ const routers = [
     path: "/",
     method: "GET",
     detail: "root",
+  },
+  {
+    path: "/news",
+    method: "GET",
+    detail: "News API",
+    examples: ["/news/milliyet"],
   },
   {
     path: "/library",
@@ -80,6 +87,53 @@ app.use((req, res, next) => {
     `LOG  Time: ${new Date().toUTCString()}  PATH: ${req.originalUrl}`
   );
   next();
+});
+
+const URLS: any = {
+  ntv: "https://www.ntv.com.tr/son-dakika.rss",
+  aa: "https://www.aa.com.tr/tr/rss/default?cat=guncel",
+  anayurt: "https://anayurtgazetesi.com/rss/kategori/son-dakika-haberler",
+  cumhuriyet: "https://www.cumhuriyet.com.tr/rss/son_dakika.xml",
+  dunya: "https://www.dunya.com/rss",
+  haberturk: "https://www.haberturk.com/rss/kategori/gundem.xml",
+  milliyet: "https://www.milliyet.com.tr/rss/rssnew/sondakikarss.xml",
+  sabah: "https://www.sabah.com.tr/rss/sondakika.xml",
+  star: "https://www.star.com.tr/rss/rss.asp?cid=13",
+  takvim: "https://www.takvim.com.tr/rss/guncel.xml",
+  veryansin: "https://www.veryansintv.com/feed/",
+  mansetturkiye: "https://www.mansetturkiye.com/rss_gundem_10.xml",
+  vatan: "https://www.gazetevatan.com/rss/gundem.xml",
+  yenisafak: "https://www.yenisafak.com/rss?xml=gundem",
+  cnn: "https://www.cnnturk.com/feed/rss/all/news",
+  trt: "https://www.trthaber.com/sondakika.rss",
+  ensonhaber: "https://www.ensonhaber.com/rss/ensonhaber.xml",
+  mynet: "https://www.mynet.com/haber/rss/sondakika",
+  tha: "https://www.turkiyehaberajansi.com/rss.xml",
+  finansgundem: "https://www.finansgundem.com/rss",
+  bloomberg: "https://www.bloomberght.com/rss",
+  nd: "https://www.nd-aktuell.de/rss/aktuell.php",
+  seud: "https://rss.sueddeutsche.de/rss/Topthemen",
+};
+
+app.get("/news", async (req: Request, res: Response) => {
+  res.json({ routes: Object.keys(URLS).map((i) => "/news/" + i) });
+});
+
+app.get("/news/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/news/ntv",
+    });
+    return res.status(400).json(resp);
+  }
+  if (Object.keys(URLS).indexOf(id) == -1) {
+    const resp = responseModel(400, "Invalid news id", null);
+    return res.status(404).json(resp);
+  }
+  const d = await getNews(URLS[id]);
+  const resp = responseModel(200, "News", d);
+  res.status(200).json(resp);
 });
 
 app.get("/lyrics", async (req: Request, res: Response) => {
