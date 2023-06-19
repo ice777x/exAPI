@@ -18,6 +18,7 @@ import { getLyrics } from "./lyrics";
 import path from "path";
 import Library from "./library";
 import { getNews } from "./news";
+import { getEpisode, getSeries, searchSeries } from "./movies/series";
 
 const app: Application = express();
 app.use(express.urlencoded({ extended: true }));
@@ -133,6 +134,38 @@ app.get("/news/:id", async (req: Request, res: Response) => {
   }
   const d = await getNews(URLS[id]);
   const resp = responseModel(200, "News", d);
+  res.status(200).json(resp);
+});
+
+app.get("/movies/series", async (req: Request, res: Response) => {
+  const q = req.query.q;
+  const series = await searchSeries(q as string);
+  res.status(200).json({ series: series });
+});
+
+app.get("/movies/series/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/movies/series/ettugrul",
+    });
+    return res.status(400).json(resp);
+  }
+  const series = await getSeries(id);
+  const resp = responseModel(200, "Series", series);
+  res.status(200).json(resp);
+});
+
+app.get("/movies/series/episode/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    const resp = responseModel(400, "Query is required", null, {
+      example: "/movies/series/episode/ertugrul/1",
+    });
+    return res.status(400).json(resp);
+  }
+  const series = await getEpisode(id as string);
+  const resp = responseModel(200, "Episode", series);
   res.status(200).json(resp);
 });
 
