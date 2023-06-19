@@ -29,7 +29,6 @@ const parser = new Parser();
 async function getNews(url: string) {
   const feed = await parser.parseURL(url);
   return {
-    feed,
     author: {
       name: feed.title,
       link: feed.link,
@@ -53,7 +52,10 @@ async function getNews(url: string) {
           ?.replace("width=208", "width=1080")
           .replace("&q=60", "&q=100"),
         date: new Date(item.pubDate!).toLocaleString("tr-TR"),
-        content_encoded: item["content:encodedSnippet"],
+        content_encoded: item["content:encodedSnippet"].replaceAll(
+          '\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1600910645713416"\r\n     crossorigin="anonymous">\r\n<ins class="adsbygoogle"\r\n     style="display:block; text-align:center;"\r\n     data-ad-layout="in-article"\r\n     data-ad-format="fluid"\r\n     data-ad-client="ca-pub-1600910645713416"\r\n     data-ad-slot="3986516310">\r\n\r\n     (adsbygoogle = window.adsbygoogle || []).push({});',
+          ""
+        ),
         content: item.contentSnippet
           ?.replace(/&quot;/g, '"')
           .replace("Devamı için tıklayınız", "")
